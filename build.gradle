@@ -1,0 +1,92 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'application'
+
+
+springBoot {
+	mainClass = "com.cornachon.crawler.CrawlerApplication"
+}
+
+
+mainClassName = "com.cornachon.crawler.CrawlerApplication"
+applicationName = 'crawler'
+applicationDefaultJvmArgs = [ "-Dlogging.config=MY_APP_HOME/config/logback-spring.xml","-Dconfig.path=MY_APP_HOME/config/" ]
+
+
+group = 'com.cornachon.crawler'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+
+task buildPcsConnexionScript(type: CreateStartScripts) {
+	mainClassName = "com.cornachon.crawler.CrawlerApplication"
+	applicationName = "crawler-new"
+	outputDir = new File(project.buildDir, 'scripts')
+	classpath = jar.outputs.files  + project.configurations.runtime + files('src/dist/config')
+	defaultJvmOpts = ["-Dlogging.config=MY_APP_HOME/config/logback-spring.xml","-Dconfig.path=MY_APP_HOME/config/" ]
+
+	doLast {
+		def windowsScriptFile = file getWindowsScript()
+		def unixScriptFile = file getUnixScript()
+		windowsScriptFile.text = windowsScriptFile.text.replace('%APP_HOME%\\lib\\config', '%APP_HOME%\\config')
+		unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/config', '$APP_HOME/config')
+		unixScript.text = unixScript.text.replace('MY_APP_HOME', '\$APP_HOME')
+		windowsScript.text = windowsScript.text.replace('MY_APP_HOME', '%~dp0..')
+	}
+}
+
+applicationDistribution.from("src/main/resources/") {
+	into "config"
+}
+
+applicationDistribution.into('') {
+	//create an empty 'logs' directory in distribution root
+	def logDirBase = new File('/tmp/app-dummy-dir')
+	logDirBase.mkdirs()
+	def logDir = new File(logDirBase.absolutePath + '/logs')
+	logDir.mkdirs()
+
+	from {logDirBase}
+}
+
+applicationDistribution.into("bin") {
+	from(buildPcsConnexionScript)
+	fileMode = 0755
+}
+
+
+dependencies {
+	compile("org.projectlombok:lombok:$lombokVersion")
+	compile('org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE')
+	compile 'org.seleniumhq.selenium:selenium-chrome-driver:3.14.0'
+	compile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.14.0'
+	compile group: 'org.seleniumhq.selenium', name: 'selenium-remote-driver', version: '3.14.0'
+
+}
+
+
+
+jar {
+	baseName = 'crawler2'
+	exclude('application.yml')
+	exclude('logback-spring.xml')
+	exclude('chromedriver')
+
+
+}

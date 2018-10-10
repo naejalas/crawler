@@ -1,0 +1,23 @@
+extractor:
+
+   fileDir: /tmp/
+   clicSleepTime: 1000
+
+   section:
+        -
+            name: tdNameClassements|Classement MF
+            periode: 30000
+            journal: true
+            csv: true
+            fileName: Classement_MF
+        -
+            name: tdNameClassements|Classement par catégories
+            periode: 30000
+            journal: true
+            csv: true
+            fileName: categorie
+
+   url: http://192.168.0.81/_103513/center/?lang=en-fr&pw=1D9C9A366FDF6E8992C16876D0FAC34A
+   browserDir: /Users/jean/Downloads
+   workingDir: /Users/jean/Documents/raceresult
+
